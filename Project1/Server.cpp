@@ -1,7 +1,6 @@
 #include <iostream>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include "Utils.h"
+#include <winsock.h>
+
 using namespace std;
 
 #define maxclient 20
@@ -32,12 +31,12 @@ void ProcessNewMessages(int nClientSocket) {
 		}
 	}
 	else {
-		for (int i = connectedclients - 1; i >= 0; i--) {
-			cout << endl << "Messages sent from client " << nClientSocket;
-			if (nArrClient[i] != nClientSocket) {
-				cout << endl << "Messages sent to client " << nClientSocket;
+		for (int i = connectedclients ; i >= 0; i--) {
+			if (nArrClient[i] != nClientSocket && nArrClient[i] !=0 ) {
+				cout << "Messages sent from client " << nClientSocket << endl;
+				cout << "Messages sent to client " << nArrClient[i] << endl;
 				send(nArrClient[i], buff, nRet, 0);
-				cout << endl << "**********************************************";
+				cout << buff << endl;
 			}
 		}
 	}
@@ -74,7 +73,6 @@ void ProccessTheNewRequest() {
 }
 
 int main() {
-	cout<<FetchMACAddress()<<'\n';
 	int nRet = 0;
 	//uses wsa version 2.2
 	WSADATA ws;
@@ -166,9 +164,7 @@ int main() {
 		int nRet = select(nMaxFd + 1, &fr, &fw, &fe, &tv);
 
 		if (nRet > 0) {
-			cout << "someone connected";
 			connectedclients++;
-			cout << "data on port ......processing now....";
 			ProccessTheNewRequest();
 		}
 		else if (nRet == 0) {
