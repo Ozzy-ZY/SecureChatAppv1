@@ -1,4 +1,5 @@
 #pragma once
+#include "utils.h"
 void Decrypt(char* str, int shift_right, int shift_left) {
     if (str == nullptr) {
         std::cout << "Error: null pointer" << std::endl;
