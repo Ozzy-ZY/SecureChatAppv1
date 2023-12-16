@@ -1,56 +1,76 @@
 #include <iostream>
 #include <winsock.h>
+#include <string>
 #include <thread>
 #include <chrono>
 #include <mutex>
 #include "Decryption.h"
 #include "Encryption.h"
 #include "utils.h"
+#include <condition_variable>
 
 #define PORT 9909
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 1000
 #define SERVER_IP "127.0.0.1"
 #define EXIT_KEYWORD "\\exit"
+
 using namespace std;
+condition_variable cv;
+atomic<bool> terminateFlag(false);
+bool atom = false;
+mutex mtx;
 int nClientSocket;
 struct sockaddr_in srv;
-char buff[BUFFER_SIZE] = { 0, };
-bool recvcontinuation = true; // Set the flag to continue loop1
-
-mutex mtx;
+char buff[BUFFER_SIZE ] = { 0 };
 
 void recive() {
-    while (recvcontinuation) {
-        this_thread::sleep_for(chrono::seconds(1));
-        int bytesReceived = recv(nClientSocket, Decrypt(buff, 20,15), BUFFER_SIZE - 1, 0);
-        if (bytesReceived == SOCKET_ERROR || bytesReceived == 0)
-        {
-            cout << "Error receiving response from the server" << endl;
-            WSACleanup();
-            exit(EXIT_SUCCESS);
+    while (!atom) {
+        fd_set readSet;
+        FD_ZERO(&readSet);
+        FD_SET(nClientSocket, &readSet);
+
+        timeval timeout;
+        timeout.tv_sec = 1;  // 1-second timeout
+        timeout.tv_usec = 0;
+
+        int readySockets = select(0, &readSet, nullptr, nullptr, &timeout);
+
+        if (readySockets == SOCKET_ERROR) {
+            cout << "Error in select()" << endl;
+            break;
         }
-        std::lock_guard<std::mutex> lock(mtx);
-        cout << buff << endl;
+
+        if (readySockets > 0 && FD_ISSET(nClientSocket, &readSet)) {
+            int bytesReceived = recv(nClientSocket, buff, BUFFER_SIZE - 1, 0);
+            if (bytesReceived == SOCKET_ERROR || bytesReceived == 0) {
+                cout << "Error receiving response from the server" << endl;
+                break;
+            }
+            Decrypt(buff, 10, 5);
+            cout << buff << endl;
+            memset(buff, 0, sizeof(buff));
+        }
     }
 }
 
 void sending() {
-    while (true) {
+    while (!terminateFlag) {
         this_thread::sleep_for(chrono::seconds(1));
-        fgets(buff, 256, stdin);
+        fgets(buff, BUFFER_SIZE, stdin);
         if (strncmp(buff, EXIT_KEYWORD, strlen(EXIT_KEYWORD)) == 0)
         {
-            recvcontinuation = false;
-            WSACleanup();
-            exit(EXIT_SUCCESS);
+            atom = true;
+            break;
         }
-        size_t len = strlen(buff);
-        if (len > 0 && buff[len - 1] == '\n')
-            buff[len - 1] = '\0';
-        send(nClientSocket, Encrypt(buff, 15, 20), len, 0);
+        else
+        {
+            size_t len = strlen(buff);
+            if (len > 0 && buff[len - 1] == '\n')
+                buff[len - 1] = '\0';
+                send(nClientSocket, Encrypt(buff, 10, 5).c_str(), len, 0);
+        }
     }
 }
-
 int main()
 {
     int nRet = 0;
@@ -84,10 +104,9 @@ int main()
     else
     {
        //connected to the sever
-        char buff[255] = { 0, };
-        char userMessage[255] = { 0, };
+        char userMessage[BUFFER_SIZE-1] = { 0, };
         // Concatenate the predefined message and user input
-        recv(nClientSocket, buff, 256, 0);
+        recv(nClientSocket, buff, BUFFER_SIZE, 0);
         cout <<"Just press enter to see the message received from other clients" << endl;
         cin.ignore(); // Ignore any newline character left in the buffer
         cout<< "type " << EXIT_KEYWORD << " to quit";
@@ -99,5 +118,7 @@ int main()
         // Wait for both threads to finish (which will never happen in this case)
         thread2.join();
         thread1.join();
+        WSACleanup();
+        return 0;
     }
 }
