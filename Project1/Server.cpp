@@ -14,13 +14,13 @@ int connectedclients = 0;
 int nArrClient[maxclient];
 
 void ProcessNewMessages(int nClientSocket) {
-	cout << endl << "Processing the new message for client socket:" << nClientSocket;
 	char buff[256 + 1] = { 0 };
 
 	int nRet = recv(nClientSocket, buff, sizeof(buff) - 1, 0);
 
 	if (nRet < 0) {
-		cout << endl << "Something wrong happened...closing the connection for client";
+		cout << endl << "Client "<<nClientSocket<<" left the chat"<<endl;
+		connectedclients--;
 		closesocket(nClientSocket);
 
 		for (int nIndex = 0; nIndex < maxclient; nIndex++) {
@@ -53,7 +53,16 @@ void ProccessTheNewRequest() {
 			for (nIndex = 0; nIndex < maxclient; nIndex++) {
 				if (nArrClient[nIndex] == 0) {
 					nArrClient[nIndex] = nClientSocket;
-					send(nClientSocket, "got the connection done successfully", 37, 0);
+					send(nClientSocket, "\n", 37, 0);
+					connectedclients++;
+					cout << "Client " << nClientSocket << " joined the chat"<<endl;
+
+					if (connectedclients >= 2) {
+						// Start processing messages when at least two clients are connected
+						//cout << "Server is ready to process messages." << endl;
+						return;
+					}
+
 					break;
 				}
 			}
@@ -82,7 +91,7 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	else {
-		cout << "WSAStartup succeeded" << endl;
+		//cout << "WSAStartup succeeded" << endl;
 	}
 	//makes a socket that uses tcp
 	nSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -92,7 +101,7 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	else {
-		cout << "Socket created: " << nSocket << endl;
+		//cout << "Socket created: " << nSocket << endl;
 	}
 	/* structure is initialized to set up the server's address information and specifies the address family, port (converted to network byte order using htons)allows connections from any available network interface */
 	srv.sin_family = AF_INET;//sin_family: This field specifies the address family, and AF_INET indicates that the server will be using IPv4 addresses.
@@ -107,7 +116,7 @@ int main() {
 	nRet = setsockopt(nSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&nOptVal, nOptLen);//if you want to change the adress every time then you chould use SO_EXCLUSIVEADDRUSE insted of SO_REUSEADDR
 	if (!nRet)
 	{
-		cout << endl << "the set socket call success";
+		//cout << endl << "the set socket call success";
 	}
 	else
 	{
@@ -127,7 +136,7 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	else {
-		cout << "Bind succeeded" << endl;
+		//cout << "Bind succeeded" << endl;
 	}
 	// starts listening on the socket for incoming client connections on the port the developer created
 	nRet = listen(nSocket, 5);//5, represents the maximum number of pending connections.
@@ -140,7 +149,8 @@ int main() {
 	}
 	else
 	{
-		cout << "Listening on port " << Port << endl;
+		//listenning on port
+		cout << "Server ON"<<endl;
 	}
 	//keep listening
 	nMaxFd = nSocket;
@@ -164,7 +174,6 @@ int main() {
 		int nRet = select(nMaxFd + 1, &fr, &fw, &fe, &tv);
 
 		if (nRet > 0) {
-			connectedclients++;
 			ProccessTheNewRequest();
 		}
 		else if (nRet == 0) {
