@@ -15,6 +15,7 @@
 #define EXIT_KEYWORD "\\exit"
 
 using namespace std;
+vector<string> users = { "zyad", "seif", "haidar", "seifWaleed", "zyadQasem" };
 condition_variable cv;
 atomic<bool> terminateFlag(false);
 bool atom = false;
@@ -73,6 +74,13 @@ void sending() {
 }
 int main()
 {
+    string user;
+    cout<<"Enter your username: ";
+    cin >> user;
+    if (!Authenticate(user, users)) {
+		cout << "You are not allowed to use this service" << endl;
+		return 0;
+	}
     int nRet = 0;
     WSAData ws;
     if (WSAStartup(MAKEWORD(2, 2), &ws) < 0)
