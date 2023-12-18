@@ -6,6 +6,11 @@
 #include <ctime>
 #include <chrono>
 #include <fstream>
+const int ALPHABET_SIZE = 26;
+const int ASCII_UPPER_A = 65;
+const int ASCII_LOWER_A = 97;
+const int ASCII_UPPER_Z = 90;
+const int ASCII_LOWER_Z = 122;
 char generateRandDigit() {
     srand(time(0));
     return ((rand() % 10) + '0');
@@ -51,13 +56,13 @@ std::string removeDigits(std::string str) {
 }
 std::string ReadFromFile(std::string FileName) {
     std::ifstream file(FileName);
-	std::string str;
-	std::string result;
+    std::string str;
+    std::string result;
     while (std::getline(file, str)) {
-		result += str;
-	}
-	file.close();
-	return result;
+        result += str;
+    }
+    file.close();
+    return result;
 }
 std::string FetchMACAddress() {
     system("GetMAC.exe");
@@ -67,8 +72,8 @@ std::string FetchMACAddress() {
 bool Authenticate(std::string Client, std::vector<std::string> ListOfUsers) {
     for (int i = 0; i < ListOfUsers.size(); i++) {
         if (Client == ListOfUsers[i]) {
-			return 1;
-		}
-	}
-	return 0;
+            return 1;
+        }
+    }
+    return 0;
 }
