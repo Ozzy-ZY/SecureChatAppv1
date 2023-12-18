@@ -15,14 +15,15 @@
 #define EXIT_KEYWORD "\\exit"
 
 using namespace std;
-vector<string> users = { "zyad", "seif", "haidar", "seifWaleed", "zyadQasem" };
+vector<string> users = { "zyad", "seif", "haide", "habiba", "rokaya" };
+vector<string> passwords = { "202202017", "202201548", "202203529", "202203795", "202203404", "202203723", "202204510" };
 condition_variable cv;
 atomic<bool> terminateFlag(false);
 bool atom = false;
 mutex mtx;
 int nClientSocket;
 struct sockaddr_in srv;
-char buff[BUFFER_SIZE ] = { 0 };
+char buff[BUFFER_SIZE] = { 0 };
 
 void recive() {
     while (!atom) {
@@ -47,8 +48,8 @@ void recive() {
                 cout << "Error receiving response from the server" << endl;
                 break;
             }
-            Decrypt(buff, 10, 5);
-            cout << buff << endl;
+            
+            cout << Decrypt(buff, 10, 5) << endl;
             memset(buff, 0, sizeof(buff));
         }
     }
@@ -65,22 +66,48 @@ void sending() {
         }
         else
         {
+          // const char* charArray = user.c_str();
             size_t len = strlen(buff);
             if (len > 0 && buff[len - 1] == '\n')
                 buff[len - 1] = '\0';
-                send(nClientSocket, Encrypt(buff, 10, 5).c_str(), len, 0);
+            send(nClientSocket, Encrypt(buff, 10, 5).c_str(), len, 0);
         }
     }
 }
 int main()
 {
-    string user;
-    cout<<"Enter your username: ";
-    cin >> user;
-    if (!Authenticate(user, users)) {
-		cout << "You are not allowed to use this service" << endl;
-		return 0;
-	}
+    int count = 1;
+    for (int i = 3; i > -2 && count != 0; i--)
+    {
+        if (i == -1)
+        {
+            return 0;
+        }
+        count = 0;
+        string user;
+        cout << "Enter your username: ";
+        cin >> user;
+        if (!Authenticate(user, users)) {
+            cout << "You are not allowed to use this service you have " << i << " tries left" << endl;
+            count++;
+        }
+    }
+    count = 1;
+    for (int i = 3; i > -2 && count != 0; i--)
+    {
+        if (i == -1)
+        {
+            return 0;
+        }
+        count = 0;
+        string password;
+        cout << "Enter your password: ";
+        cin >> password;
+        if (!Authenticate(password, passwords)) {
+            cout << "You are not allowed to use this service you have " << i << " tries left" << endl;
+            count++;
+        }
+    }
     int nRet = 0;
     WSAData ws;
     if (WSAStartup(MAKEWORD(2, 2), &ws) < 0)
@@ -94,7 +121,7 @@ int main()
 
     if (nClientSocket < 0)
     {
-        cout <<"socket call failed" << endl;
+        cout << "socket call failed" << endl;
         WSACleanup();
         return (EXIT_FAILURE);
     }
@@ -105,19 +132,19 @@ int main()
     nRet = connect(nClientSocket, (struct sockaddr*)&srv, sizeof(srv));
     if (nRet < 0)
     {
-        cout <<"connect failed" << endl;
+        cout << "connect failed" << endl;
         WSACleanup();
         return (EXIT_FAILURE);
     }
     else
     {
-       //connected to the sever
-        char userMessage[BUFFER_SIZE-1] = { 0, };
+        //connected to the sever
+        char userMessage[BUFFER_SIZE - 1] = { 0, };
         // Concatenate the predefined message and user input
         recv(nClientSocket, buff, BUFFER_SIZE, 0);
-        cout <<"Just press enter to see the message received from other clients" << endl;
+        cout << "Just press enter to see the message received from other clients" << endl;
         cin.ignore(); // Ignore any newline character left in the buffer
-        cout<< "type " << EXIT_KEYWORD << " to quit";
+        cout << "type " << EXIT_KEYWORD << " to quit";
         cout << buff << endl;
         //now send what you want
         // Create two threads
@@ -127,6 +154,14 @@ int main()
         thread2.join();
         thread1.join();
         WSACleanup();
+            std::cout << "  _______ _                     __   __  _______                   " << std::endl;
+            std::cout << " |__   __| |              _    |  | / / / _____/           " << std::endl;
+            std::cout << "    | |  | |__   _____   | |__ |  |/ / | (____           " << std::endl;
+            std::cout << "    | |  | '_ \\ /  _  |  |  _ \\|  |\\ \\  \\_____\\       " << std::endl;
+            std::cout << "    | |  | | | || (_| |__| | | |  | | |  ____) |                      " << std::endl;
+            std::cout << "    |_|  |_| |_||_______||_| |_|__| |_| |_____/                        " << std::endl;
+            std::cout << "                                                                 "  << std::endl;
+            std::cout << "                                                                 " << std::endl;
         return 0;
     }
 }
