@@ -8,7 +8,7 @@
 #include "Encryption.h"
 #include "utils.h"
 #include <condition_variable>
-
+#include<windows.h>
 #define PORT 9909
 #define BUFFER_SIZE 1000
 #define SERVER_IP "127.0.0.1"
@@ -76,6 +76,22 @@ void sending() {
 }
 int main()
 {
+    	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hConsole == INVALID_HANDLE_VALUE) {
+		cerr << "Error while getting console handle" << endl ;
+			return 1;
+	}
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
+	cout << " ###                                       ###   #              #       #                \n";
+	cout << "#   #                                     #   #  #              #      # #                \n";
+	cout << "#       ###    ###   #   #  # ##    ###   #      # ##    ###   ####   #   #  # ##   # ##  \n";
+	cout << " ###   #   #  #   #  #   #  ##  #  #   #  #      ##  #      #   #     #   #  ##  #  ##  # \n";
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+	cout << "    #  #####  #      #   #  #      #####  #      #   #   ####   #     #####  ##  #  ##  # \n";
+	cout << "#   #  #      #   #  #  ##  #      #      #   #  #   #  #   #   #  #  #   #  # ##   # ##  \n";
+	cout << " ###    ###    ###    ## #  #       ###    ###   #   #   ####    ##   #   #  #      #     \n";
+	cout << "                                                                             #      #     \n";
+	cout << "   
     int count = 1;
     for (int i = 3; i > -2 && count != 0; i--)
     {
